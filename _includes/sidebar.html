@@ -1,0 +1,43 @@
+<aside class="sidebar" aria-label="侧边栏">
+  <section class="widget">
+    <h3 class="widget-title">搜索</h3>
+    <input id="search-input" class="search-input" type="search" placeholder="搜索文章..." aria-label="搜索文章" />
+    <p class="search-hint">输入关键词进行实时过滤</p>
+  </section>
+
+  <section class="widget">
+    <h3 class="widget-title">分类</h3>
+    <ul class="category-list">
+      {%- assign cats = site.categories | sort -%}
+      {%- for cat in cats -%}
+        {%- assign name = cat[0] -%}
+        {%- assign posts = cat[1] -%}
+        <li>
+          <a href="{{ '/category/' | append: name | append: '/' | relative_url }}">{{ name }}</a>
+          <span class="count">{{ posts | size }}</span>
+        </li>
+      {%- endfor -%}
+    </ul>
+  </section>
+
+  <section class="widget">
+    <h3 class="widget-title">标签</h3>
+    <div class="tag-cloud">
+      {%- assign max = 1 -%}
+      {%- assign min = 100000 -%}
+      {%- for t in site.tags -%}
+        {%- assign count = t[1] | size -%}
+        {%- if count > max -%}{% assign max = count %}{%- endif -%}
+        {%- if count < min -%}{% assign min = count %}{%- endif -%}
+      {%- endfor -%}
+      {%- assign range = max | minus: min | default: 1 -%}
+      {%- for t in site.tags -%}
+        {%- assign name = t[0] -%}
+        {%- assign count = t[1] | size -%}
+        {%- assign weight = count | minus: min | times: 1.0 | divided_by: range -%}
+        {%- assign size = 0.9 | plus: weight | times: 0.6 -%}
+        <span class="tag" style="font-size: {{ size | round: 2 }}rem" aria-label="{{ name }} ({{ count }})">#{{ name }}</span>
+      {%- endfor -%}
+    </div>
+  </section>
+</aside>
