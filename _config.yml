@@ -7,13 +7,18 @@ permalink: /:categories/:year/:month/:day/:title/
 
 # GitHub Pages supported plugins
 plugins:
-  - jekyll-feed
+  - jekyll-seo-tag
   - jekyll-sitemap
+  - jekyll-paginate
 
 # Markdown and highlighter
 markdown: kramdown
+highlighter: rouge
 kramdown:
   input: GFM
+
+# Timezone
+timezone: Asia/Shanghai
 
 # Excerpt separator for manual control if needed
 excerpt_separator: "\n\n"
@@ -42,7 +47,3 @@ exclude:
   - Gemfile.lock
   - package.json
   - package-lock.json
-
-# Feed
-feed:
-  path: feed.xml
