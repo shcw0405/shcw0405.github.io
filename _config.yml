@@ -1,0 +1,48 @@
+title: 蔡旭 · caixu.me
+description: "蔡旭的个人博客与知识库，记录数据工程、系统架构与产品思考。"
+lang: zh-CN
+url: https://caixu.me
+baseurl: ""
+permalink: /:categories/:year/:month/:day/:title/
+
+# GitHub Pages supported plugins
+plugins:
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Markdown and highlighter
+markdown: kramdown
+kramdown:
+  input: GFM
+
+# Excerpt separator for manual control if needed
+excerpt_separator: "\n\n"
+
+# Defaults for posts
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: post
+      author: 蔡旭
+      lang: zh-CN
+
+# Collections
+collections:
+  posts:
+    output: true
+
+# Build settings
+exclude:
+  - README.md
+  - node_modules
+  - vendor
+  - Gemfile
+  - Gemfile.lock
+  - package.json
+  - package-lock.json
+
+# Feed
+feed:
+  path: feed.xml
