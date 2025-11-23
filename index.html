@@ -1,4 +1,658 @@
----
-layout: home
-title: 首页
----
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>少华从文的世界</title>
+
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 配置 Tailwind 样式 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: [
+                            'Inter', 
+                            'PingFang SC',      
+                            'Hiragino Sans GB', 
+                            'Microsoft YaHei',  
+                            'sans-serif'
+                        ],
+                        jp: [
+                            '"Hiragino Sans"',          
+                            '"Hiragino Kaku Gothic ProN"', 
+                            '"Noto Sans JP"',           
+                            '"Yu Gothic"',              
+                            'sans-serif'
+                        ]
+                    },
+                    colors: {
+                        anime: {
+                            pink: '#ff7eb3',
+                            blue: '#64d2ff',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 引入 Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react,react-dom",
+            "marked": "https://esm.sh/marked@9.1.2"
+        }
+    }
+    </script>
+
+    <style>
+        /* 核心修复：禁止浏览器的橡皮筋回弹效果 */
+        html, body {
+            overscroll-behavior: none; 
+            height: 100%; 
+        }
+
+        /* 滚动条样式 - 适配暗黑模式 */
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        /* 日间滚动条 */
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 暗黑模式滚动条适配 */
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        /* 防止 iOS 点击高亮 */
+        * { -webkit-tap-highlight-color: transparent; }
+
+        /* 优化阴影逻辑 */
+        .shadow-text-solid {
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .dark .shadow-text-solid {
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8); /* 暗黑模式加深阴影 */
+        }
+
+        .shadow-text-gradient {
+            filter: drop-shadow(0 2px 4px rgba(96, 165, 250, 0.2)); 
+        }
+
+        /* 全局禁止拖拽图片和链接 */
+        img, a {
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-user-select: none; 
+            user-select: none;
+        }
+
+        /* 针对导航栏的超细滚动条样式 */
+        .thin-scrollbar::-webkit-scrollbar {
+            height: 3px; 
+            width: 3px;  
+        }
+        .thin-scrollbar::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(203, 213, 225, 0.5); 
+            border-radius: 10px; 
+        }
+        .dark .thin-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.5); 
+        }
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.8); 
+        }
+
+        /* 硬件加速类 */
+        .gpu-accelerated {
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+        }
+
+        /* 主题切换平滑过渡 */
+        .theme-transition {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        /* View Transitions API 样式优化 */
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+            display: block;
+        }
+
+        /* 统一层级策略 */
+        ::view-transition-new(root) {
+            z-index: 9999; 
+        }
+        ::view-transition-old(root) {
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-x-hidden selection:bg-pink-200 selection:text-pink-900 dark:selection:bg-pink-900 dark:selection:text-pink-100 select-none theme-transition" ondragstart="return false;">
+    <div id="root"></div>
+
+    <!-- React 应用逻辑 -->
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from 'framer-motion';
+        import { ArrowRight, ExternalLink, Mail, Github, Twitter, Tv, Disc, Star, MessageCircle, BrainCircuit, CheckCircle2, PlayCircle, History, Gamepad2, X, Music, Cloud, Bot, Terminal, BookOpen, Sun, Moon, Volume2, Smartphone, Calendar } from 'lucide-react';
+        import { marked } from 'marked';
+
+        // Access global variables
+        const { CONFIG, NAV_LINKS } = window;
+        const { BLOG_POSTS } = window;
+
+        // 3. Glass Card
+        const GlassCard = ({ children, className = "" }) => (
+            React.createElement("div", { className: `bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-xl rounded-3xl theme-transition ${className}` }, children)
+        );
+
+        // 4. Social Link Card
+        const SocialCard = ({ icon: Icon, title, subtitle, color, href, className = "" }) => {
+            const cardVariants = {
+                hidden: { y: -50, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 200, damping: 15 } }
+            };
+
+            return React.createElement(motion.div, { variants: cardVariants, className: className },
+                React.createElement(motion.a, {
+                    href: href,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                    whileHover: { y: -8, scale: 1.02 }, 
+                    whileTap: { scale: 0.98 },
+                    transition: { type: "spring", stiffness: 400, damping: 17 },
+                    className: `h-full relative overflow-hidden group block p-6 rounded-3xl bg-white dark:bg-slate-800 shadow-lg border border-gray-100 dark:border-slate-700 theme-transition`
+                }, 
+                    React.createElement("div", { className: `absolute inset-0 opacity-0 group-hover:opacity-10 theme-transition ${color}` }),
+                    React.createElement("div", { className: "flex items-center justify-between mb-4" },
+                        React.createElement("div", { className: `p-3 rounded-2xl ${color} bg-opacity-10 dark:bg-opacity-20 theme-transition` },
+                            React.createElement(Icon, { className: `w-6 h-6 ${color.replace('bg-', 'text-')} theme-transition` })
+                        ),
+                        React.createElement(ExternalLink, { className: "w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 theme-transition" })
+                    ),
+                    React.createElement("h3", { className: "text-lg font-bold text-gray-800 dark:text-gray-200 theme-transition" }, title),
+                    React.createElement("p", { className: "text-sm text-gray-400 dark:text-gray-500 theme-transition" }, subtitle)
+                )
+            );
+        };
+
+        // [REMOVED] AnimeGrid, BangumiSection, SpotifySection, GameModal
+
+        // [REMOVED] BlogPostPage (Moved to blog.html)
+
+        // 6. Blog Section Component
+        const BlogSection = () => {
+            return React.createElement("section", { id: "blog", className: "py-20 px-6 max-w-6xl mx-auto z-10 relative" },
+                
+                React.createElement("div", { className: "flex items-center gap-3 mb-12" },
+                    React.createElement("div", { className: "w-2 h-8 bg-purple-500 rounded-full" }),
+                    React.createElement("h2", { className: "text-3xl font-bold text-gray-800 dark:text-white theme-transition" }, "My ", React.createElement("span", { className: "text-purple-500" }, "Blog"))
+                ),
+
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-8" },
+                    BLOG_POSTS.map(post => (
+                        React.createElement(motion.a, {
+                            key: post.id,
+                            href: `blog.html?post=${post.id}`, // Link to new page
+                            initial: { opacity: 0, y: 20 },
+                            whileInView: { opacity: 1, y: 0 },
+                            viewport: { once: true },
+                            whileHover: { y: -5 },
+                            className: "block bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-lg border border-gray-100 dark:border-slate-700 cursor-pointer group theme-transition"
+                        },
+                            React.createElement("div", { className: "flex justify-between items-start mb-6" },
+                                React.createElement("span", { className: "px-3 py-1 rounded-full bg-gray-100 dark:bg-slate-700 text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider" }, post.category),
+                                React.createElement("span", { className: "text-sm text-gray-400" }, post.date)
+                            ),
+                            React.createElement("h3", { className: "text-2xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-purple-500 transition-colors" }, post.title),
+                            React.createElement("p", { className: "text-gray-600 dark:text-gray-400 leading-relaxed mb-6 line-clamp-3" }, post.summary),
+                            React.createElement("div", { className: "flex items-center text-purple-500 font-medium" },
+                                "Read Article ", React.createElement(ArrowRight, { className: "w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" })
+                            )
+                        )
+                    ))
+                )
+            );
+        };
+
+        // --- 主应用 (Main App) ---
+        const App = () => {
+            const [theme, setTheme] = useState('light');
+            const [activeSection, setActiveSection] = useState('home');
+            const isManualScrolling = useRef(false);
+            
+            // [REMOVED] Routing logic (handled by multi-page architecture)
+
+            // [修改] 主题初始化逻辑
+            useEffect(() => {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme) {
+                    setTheme(storedTheme);
+                    if (storedTheme === 'dark') document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme('dark');
+                    document.documentElement.classList.add('dark');
+                } else {
+                    setTheme('light');
+                    document.documentElement.classList.remove('dark');
+                }
+            }, []);
+
+            // [修改] Scroll Spy 核心逻辑：解决冲突，实现平滑
+            useEffect(() => {
+                const handleScroll = () => {
+                    // 如果正在手动滚动（点击跳转），则不执行自动判定，防止“闪烁”
+                    if (isManualScrolling.current) return;
+
+                    // [核心修复] 判定线设为当前视口顶部 + 100px（导航栏高度附近）
+                    // 只有当元素真正滚到导航栏下面一点点时，才点亮
+                    const scrollPosition = window.scrollY + 100; 
+
+                    // 默认 Home
+                    let current = 'home'; 
+
+                    // 遍历判断
+                    for (const link of NAV_LINKS) {
+                        const element = document.getElementById(link.id);
+                        if (element) {
+                            // 如果元素的顶部 已经滚到了 判定线之上，说明我们看到了它（或已经过了它）
+                            if (element.offsetTop <= scrollPosition) {
+                                current = link.id;
+                            }
+                        }
+                    }
+
+                    // [保留] 触底判定：严格触底检测 (diff < 20px)
+                    if (Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 20) {
+                        current = 'contact';
+                    }
+
+                    setActiveSection(current);
+                };
+
+                window.addEventListener('scroll', handleScroll);
+                handleScroll(); // 初始化
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            // [新增] 点击导航处理函数：带平滑滚动 + 锁存状态
+            const handleNavClick = (e, id) => {
+                e.preventDefault(); // 阻止默认锚点跳转
+
+                const element = document.getElementById(id);
+                if (element) {
+                    isManualScrolling.current = true; // 开启锁
+                    setActiveSection(id); // 立即更新 UI 为选中状态
+
+                    // 计算偏移量（减去导航栏高度，比如 80px）
+                    const navHeight = 80;
+                    const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+                    const offsetPosition = elementPosition - navHeight;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: "smooth"
+                    });
+
+                    // 滚动动画结束后（约 700ms），释放锁
+                    setTimeout(() => {
+                        isManualScrolling.current = false;
+                    }, 700);
+                }
+            };
+
+            // [修改] 主题切换逻辑：引入 View Transitions API 实现扩散 + 模糊效果
+            const toggleTheme = (e) => {
+                const isDark = theme === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+
+                const updateTheme = () => {
+                    setTheme(newTheme);
+                    localStorage.setItem('theme', newTheme);
+                    if (newTheme === 'dark') document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
+                };
+
+                if (!document.startViewTransition) {
+                    updateTheme();
+                    return;
+                }
+
+                const x = e.clientX;
+                const y = e.clientY;
+                const endRadius = Math.hypot(
+                    Math.max(x, window.innerWidth - x),
+                    Math.max(y, window.innerHeight - y)
+                );
+
+                const transition = document.startViewTransition(() => {
+                    updateTheme();
+                });
+
+                transition.ready.then(() => {
+                    const clipPath = [
+                        `circle(0px at ${x}px ${y}px)`,
+                        `circle(${endRadius}px at ${x}px ${y}px)`,
+                    ];
+
+                    // 新视图：扩散 + 从模糊变清晰 (增强模糊度至 20px)
+                    document.documentElement.animate(
+                        {
+                            clipPath: clipPath,
+                            filter: ['blur(20px)', 'blur(0px)'], 
+                        },
+                        {
+                            duration: 500,
+                            easing: "ease-in-out",
+                            pseudoElement: "::view-transition-new(root)",
+                        }
+                    );
+
+                    // 旧视图：从清晰变模糊
+                    document.documentElement.animate(
+                        {
+                            filter: ['blur(0px)', 'blur(20px)'], 
+                        },
+                        {
+                            duration: 500,
+                            easing: "ease-in-out",
+                            pseudoElement: "::view-transition-old(root)",
+                        }
+                    );
+                });
+            };
+
+
+
+            return React.createElement("div", { className: "min-h-screen font-sans overflow-x-hidden", onDragStart: (e) => e.preventDefault() },
+                // 背景装饰
+                React.createElement("div", { className: "fixed inset-0 pointer-events-none z-0 overflow-hidden" },
+                    React.createElement("div", { className: "absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-[120px] theme-transition" }),
+                    React.createElement("div", { className: "absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-pink-200/30 dark:bg-pink-900/20 rounded-full blur-[120px] theme-transition" })
+                ),
+
+                // 导航栏
+                React.createElement("nav", { className: "fixed top-0 w-full z-50 px-6 py-4 flex justify-center" },
+                    React.createElement(GlassCard, { className: "px-6 py-3 flex items-center justify-between gap-4 md:gap-6 !rounded-full !bg-white/80 dark:!bg-slate-900/80 w-full max-w-4xl theme-transition" },
+                        React.createElement("div", { className: "flex-shrink-0" },
+                            React.createElement("div", { className: "w-10 h-10 rounded-full overflow-hidden border border-gray-200 dark:border-slate-700 shadow-sm cursor-pointer hover:scale-105 transition-transform" },
+                                React.createElement("a", { href: "#home", onClick: (e) => handleNavClick(e, 'home') },
+                                    React.createElement("img", { src: CONFIG.avatar, alt: "Logo", className: "w-full h-full object-cover select-none", draggable: "false", onDragStart: (e) => e.preventDefault() })
+                                )
+                            )
+                        ),
+                        // [核心修改] 导航菜单区域：使用 handleNavClick 接管点击，实现平滑滚动且不闪烁
+                        React.createElement("div", { className: "flex items-center gap-4 md:gap-6 overflow-x-auto thin-scrollbar px-2 pb-1" },
+                            NAV_LINKS.map(link => {
+                                const isActive = activeSection === link.id;
+                                return React.createElement("a", {
+                                    key: link.id,
+                                    href: `#${link.id}`,
+                                    onClick: (e) => handleNavClick(e, link.id), // 使用自定义点击处理
+                                    className: `relative z-10 px-4 py-1.5 rounded-full text-sm font-bold transition-colors duration-300 whitespace-nowrap cursor-pointer select-none
+                                        ${isActive 
+                                            ? link.activeText // 选中：显示配置好的多彩颜色
+                                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200' // 未选中：灰色
+                                        }`
+                                }, 
+                                    // 动态背景胶囊
+                                    isActive && React.createElement(motion.div, {
+                                        layoutId: "navActiveBg",
+                                        className: `absolute inset-0 rounded-full -z-10 ${link.activeBg}`,
+                                        transition: { type: "spring", stiffness: 300, damping: 30 }
+                                    }),
+                                    link.label
+                                );
+                            })
+                        ),
+                        React.createElement("div", { className: "flex-shrink-0 flex items-center gap-2" },
+                            React.createElement("button", {
+                                onClick: toggleTheme,
+                                className: "w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-yellow-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors shadow-sm theme-transition",
+                                title: theme === 'light' ? "Switch to Dark Mode" : "Switch to Light Mode"
+                            }, 
+                                theme === 'light' 
+                                    ? React.createElement(Moon, { className: "w-5 h-5" }) 
+                                    : React.createElement(Sun, { className: "w-5 h-5" })
+                            )
+                        )
+                    )
+                ),
+
+                // 首屏 (Hero Section)
+                React.createElement("section", { id: "home", className: "relative min-h-screen flex flex-col items-center justify-center px-6 pt-20 z-10" },
+                    React.createElement(motion.div, {
+                        initial: { opacity: 0, scale: 0.9 },
+                        animate: { opacity: 1, scale: 1 },
+                        transition: { duration: 0.8 },
+                        className: "relative z-20 text-center max-w-4xl"
+                    },
+                        React.createElement(motion.div, {
+                            className: "relative mb-8 inline-block cursor-pointer",
+                            whileHover: { scale: 1.1 },
+                            whileTap: { scale: 0.95 },
+                            transition: { type: "spring", stiffness: 400, damping: 17 }
+                        },
+                            React.createElement(motion.div, {
+                                className: "absolute -inset-1 bg-gradient-to-tr from-blue-300 via-purple-300 to-pink-300 rounded-full opacity-70 blur-lg",
+                                animate: { rotate: 360, scale: [1, 1.05, 1] },
+                                transition: { rotate: { duration: 8, repeat: Infinity, ease: "linear" }, scale: { duration: 2, repeat: Infinity, ease: "easeInOut" } }
+                            }),
+                            React.createElement("div", { className: "relative p-1.5 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-xl theme-transition" },
+                                React.createElement("img", { src: CONFIG.avatar, alt: "Avatar", className: "w-36 h-36 rounded-full object-cover border border-gray-100 dark:border-slate-700 select-none theme-transition", draggable: "false", onDragStart: (e) => e.preventDefault() })
+                            )
+                        ),
+
+                        // [修改] Hero 文字部分
+                        React.createElement(motion.div, {
+                             key: theme,
+                             className: "flex flex-col items-center justify-center mb-6 cursor-default select-none", 
+                             onDragStart: (e) => e.preventDefault() 
+                        },
+                            React.createElement("div", { className: "flex flex-wrap justify-center items-baseline gap-2 md:gap-3 mb-2" },
+                                // SHCW
+                                React.createElement(motion.span, {
+                                    className: "text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-400 inline-block shadow-text-gradient select-none !transition-none", 
+                                    whileHover: { scale: 1.05, rotate: -2 },
+                                    whileTap: { scale: 0.95, rotate: 3 }, 
+                                    transition: { type: "spring", stiffness: 300 },
+                                    onDragStart: (e) => e.preventDefault() 
+                                }, "SHCW"),
+
+                                // 的
+                                React.createElement(motion.span, {
+                                    className: "text-4xl md:text-5xl font-black text-[#1E293B] dark:text-[#e6eaee] inline-block shadow-text-solid select-none mx-1 !transition-none", 
+                                    whileHover: { y: -5, rotate: 15 }, 
+                                    whileTap: { scale: 1.2, rotate: -20, color: "#64d2ff" }, 
+                                    transition: { type: "spring", stiffness: 300 },
+                                    onDragStart: (e) => e.preventDefault() 
+                                }, "的"),
+
+                                // 世界
+                                React.createElement(motion.span, {
+                                    className: "text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-rose-400 inline-block shadow-text-gradient select-none !transition-none", 
+                                    whileHover: { scale: 1.05, rotate: 2 },
+                                    whileTap: { scale: 0.95, rotate: -3 }, 
+                                    transition: { type: "spring", stiffness: 300 },
+                                    onDragStart: (e) => e.preventDefault() 
+                                }, "世界")
+                            )
+                        ),
+
+                        React.createElement(motion.p, {
+                            className: "text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed mb-10 font-medium select-text cursor-text theme-transition",
+                            style: { textShadow: "0 1px 2px rgba(255,255,255,0.8), 0 2px 4px rgba(0,0,0,0.05)" }, 
+                            initial: { y: 20, opacity: 0 },
+                            animate: { y: 0, opacity: 1 },
+                            transition: { delay: 0.4 },
+                        },
+                            "喜欢折腾的原神糕手，这里是我的个人空间和我各网站的中转站捏",
+                            React.createElement("br", { className: "hidden md:block" }),
+                        ),
+                        React.createElement(motion.div, {
+                            className: "flex justify-center gap-4",
+                            initial: { y: 20, opacity: 0 },
+                            animate: { y: 0, opacity: 1 },
+                            transition: { delay: 0.6 }
+                        },
+                            React.createElement("a", {
+                                href: "#about",
+                                className: "px-8 py-3 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium hover:bg-slate-800 dark:hover:bg-gray-200 transition-all shadow-lg hover:shadow-blue-500/25 flex items-center gap-2 group theme-transition"
+                            }, "随便看看 ", React.createElement(ArrowRight, { className: "w-4 h-4 group-hover:translate-x-1 transition-transform" }))
+                        )
+                    )
+                ),
+
+                // 自我介绍 (About Section)
+                React.createElement("section", { id: "about", className: "py-20 px-6 relative z-10 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm theme-transition" },
+                    React.createElement("div", { className: "max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center" },
+                        React.createElement(motion.div, {
+                            initial: { opacity: 0, x: -50 },
+                            whileInView: { opacity: 1, x: 0 },
+                            viewport: { once: false, amount: 0.3 }
+                        },
+                            React.createElement("img", { 
+                                src: CONFIG.featuredImg, 
+                                alt: "Featured", 
+                                className: "rounded-[3rem] shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500 w-full max-w-md mx-auto border-8 border-white dark:border-slate-700 object-cover select-none theme-transition",
+                                draggable: "false",
+                                onDragStart: (e) => e.preventDefault()
+                            })
+                        ),
+                        React.createElement(motion.div, {
+                            initial: { opacity: 0, x: 50 },
+                            whileInView: { opacity: 1, x: 0 },
+                            viewport: { once: false, amount: 0.3 },
+                            className: "space-y-6"
+                        },
+                            React.createElement("h3", { className: "text-sm font-bold uppercase tracking-widest text-blue-500" }, "我的其他网页"),
+
+                            React.createElement("h2", { className: "text-4xl font-bold text-gray-900 dark:text-white theme-transition" }, "与天奋斗", React.createElement("br"), "其乐无穷"),
+
+                            React.createElement("p", { className: "text-gray-600 dark:text-gray-300 leading-relaxed text-lg theme-transition" },
+                                "欢迎来到我的个人空间！平日喜欢折腾点有意思的小东西，做点科研分享。我相信“Life is a struggle, but Love can.”为了最大化人类福祉而奋斗！"
+                            ),
+
+                            React.createElement("div", { className: "grid grid-cols-2 gap-6 pt-4" },
+                                React.createElement(motion.a, { 
+                                    href: "",
+                                    target: "_blank",
+                                    rel: "noopener noreferrer",
+                                    whileHover: { scale: 1.05 },
+                                    whileTap: { scale: 0.95 },
+                                    className: "p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 cursor-pointer block group hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors theme-transition"
+                                },
+                                    React.createElement("h4", { className: "font-bold text-blue-900 dark:text-blue-100 mb-1 flex items-center gap-2 theme-transition" }, 
+                                        "科研主页", 
+                                        React.createElement(ExternalLink, { className: "w-3 h-3 opacity-50" })
+                                    ),
+                                    React.createElement("p", { className: "text-sm text-blue-700 dark:text-blue-300 theme-transition" }, "我的简历")
+                                ),
+                                React.createElement(motion.a, { 
+                                    href: "",
+                                    target: "_blank",
+                                    rel: "noopener noreferrer",
+                                    whileHover: { scale: 1.05 },
+                                    whileTap: { scale: 0.95 },
+                                    className: "p-4 rounded-2xl bg-pink-50 dark:bg-pink-900/20 cursor-pointer block group hover:bg-pink-100 dark:hover:bg-pink-900/30 transition-colors theme-transition"
+                                },
+                                    React.createElement("h4", { className: "font-bold text-pink-900 dark:text-pink-100 mb-1 flex items-center gap-2 theme-transition" }, 
+                                        "原神，启动",
+                                        React.createElement(ExternalLink, { className: "w-3 h-3 opacity-50" })
+                                    ),
+                                    React.createElement("p", { className: "text-sm text-pink-700 dark:text-pink-300 theme-transition" }, "来玩原神吧")
+                                )
+                            )
+                        )
+                    )
+                ),
+
+                // Blog Section
+                React.createElement(BlogSection),
+
+                // Links Section
+        React.createElement("section", { id: "links", className: "py-24 px-6 max-w-6xl mx-auto z-10 relative" },
+            React.createElement("div", { className: "text-center mb-16" },
+                React.createElement("h2", { className: "text-4xl font-bold text-gray-900 dark:text-white mb-6 theme-transition" }, "个人社交媒体"),
+                React.createElement("p", { className: "text-gray-500 dark:text-gray-400 theme-transition" }, "连接至我的其他数字世界")
+            ),
+
+            React.createElement(motion.div, { 
+                className: "flex flex-wrap justify-center gap-6",
+                initial: "hidden",
+                whileInView: "visible",
+                viewport: { once: false, amount: 0.1, margin: "200px" },
+                variants: { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.05 } } }
+            },
+                // Cards
+                React.createElement(SocialCard, { className: "w-[calc(50%-12px)] lg:w-[calc(25%-18px)]", icon: Music, title: "QQ Music", subtitle: "我的歌单", color: "bg-green-500", href: "https://y.qq.com/n/ryqq/profile" }),
+                React.createElement(SocialCard, { className: "w-[calc(50%-12px)] lg:w-[calc(25%-18px)]", icon: Tv, title: "Bilibili", subtitle: "阿姨退钱！", color: "bg-pink-400", href: "https://space.bilibili.com/512936296" }),
+                React.createElement(SocialCard, { className: "w-[calc(50%-12px)] lg:w-[calc(25%-18px)]", icon: Terminal, title: "Linux.do", subtitle: "摸鱼技术社区", color: "bg-violet-600", href: "https://linux.do/u/shcw0405/summary" }),
+                React.createElement(SocialCard, { className: "w-[calc(50%-12px)] lg:w-[calc(25%-18px)]", icon: Github, title: "GitHub", subtitle: "@SHCW", color: "bg-gray-500", href: "https://github.com/shcw0405" })
+            )
+        ),
+
+        // Footer
+        React.createElement("footer", { id: "contact", className: "relative bg-white dark:bg-slate-900 pt-20 pb-10 px-6 overflow-hidden theme-transition" },
+            React.createElement("div", { className: "max-w-4xl mx-auto text-center relative z-10" },
+                React.createElement("h2", { className: "text-3xl font-bold text-gray-900 dark:text-white mb-6 theme-transition" }, "联系我"),
+                React.createElement("p", { className: "text-gray-500 dark:text-gray-400 mb-10 theme-transition" }, "无论是技术交流，还是原神讨论，随时欢迎联系。", React.createElement("br"), "1026343326@qq.com"),
+
+                React.createElement("div", { className: "flex justify-center gap-6 mb-8" },
+                    React.createElement(motion.a, {
+                        href: "mailto:1026343326@qq.com",
+                        className: "p-4 bg-blue-50 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors theme-transition",
+                        whileHover: { scale: 1.1, rotate: 10 }
+                    }, React.createElement(Mail, { className: "w-8 h-8" })),
+
+                    React.createElement(motion.a, {
+                        href: "https://qm.qq.com/q/REjw5r8U0i",
+                        target: "_blank", 
+                        rel: "noopener noreferrer",
+                        className: "p-4 bg-sky-50 dark:bg-sky-900/30 rounded-full text-sky-500 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors theme-transition",
+                        whileHover: { scale: 1.1, rotate: -10 }
+                    }, React.createElement(MessageCircle, { className: "w-8 h-8" }))
+                ),
+
+                React.createElement("div", { className: "border-t border-gray-100 dark:border-slate-800 pt-8 text-sm text-gray-400 dark:text-gray-500 flex flex-col md:flex-row justify-between items-center gap-4 theme-transition" },
+                    React.createElement("p", null, "by @SHCW 2025"),
+                    React.createElement("div", { className: "flex gap-4" },
+                        React.createElement("a", { href: "#", className: "hover:text-gray-600 dark:hover:text-gray-300" }, "†升天†")
+                    )
+                )
+            ),
+            React.createElement("div", { className: "absolute bottom-0 right-0 opacity-10 w-96 pointer-events-none grayscale" },
+                React.createElement("img", { src: CONFIG.charaLeft, alt: "Footer Decor", className: "select-none", draggable: "false", onDragStart: (e) => e.preventDefault() })
+            )
+        )
+    );
+};
+
+// 启动应用
+const root = createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
+    </script>
+</body>
+</html>

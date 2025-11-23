@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客 - 少华从文的世界</title>
+
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 配置 Tailwind 样式 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', 
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 引入 Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react,react-dom",
+            "marked": "https://esm.sh/marked@9.1.2"
+        }
+    }
+    </script>
+
+    <style>
+        html, body { overscroll-behavior: none; height: 100%; }
+        /* 滚动条样式 */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        
+        .theme-transition {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-x-hidden theme-transition">
+    <div id="root"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/data.js"></script>
+    <script type="module">
+        import React, { useState, useEffect } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { motion } from 'framer-motion';
+        import { ArrowRight, Calendar, Moon, Sun } from 'lucide-react';
+        import { marked } from 'marked';
+        
+        const { BLOG_POSTS } = window;
+
+        const BlogPostPage = () => {
+            const [post, setPost] = useState(null);
+            const [theme, setTheme] = useState('light');
+
+            // 主题初始化
+            useEffect(() => {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme) {
+                    setTheme(storedTheme);
+                    if (storedTheme === 'dark') document.documentElement.classList.add('dark');
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme('dark');
+                    document.documentElement.classList.add('dark');
+                }
+            }, []);
+
+            const toggleTheme = () => {
+                const newTheme = theme === 'light' ? 'dark' : 'light';
+                setTheme(newTheme);
+                localStorage.setItem('theme', newTheme);
+                if (newTheme === 'dark') document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            };
+
+            // 获取 URL 参数并加载内容
+            useEffect(() => {
+                const params = new URLSearchParams(window.location.search);
+                const postId = parseInt(params.get('post'));
+                const foundPost = BLOG_POSTS.find(p => p.id === postId);
+                
+                if (foundPost) {
+                    // 1. 设置基础信息
+                    setPost(foundPost);
+                    document.title = `${foundPost.title} - 少华从文的世界`;
+
+                    // 2. 定义全局回调函数
+                    window.loadContent = (id, content) => {
+                        if (id === postId) {
+                            setPost(prev => ({ ...prev, content }));
+                        }
+                    };
+
+                    // 3. 动态加载脚本
+                    const script = document.createElement('script');
+                    script.src = `posts/${postId}.js`;
+                    script.async = true;
+                    document.body.appendChild(script);
+
+                    return () => {
+                        document.body.removeChild(script);
+                        delete window.loadContent;
+                    };
+                } else {
+                    window.location.href = 'index.html';
+                }
+            }, []);
+
+            if (!post) return null;
+
+            return React.createElement("div", { className: "min-h-screen bg-white dark:bg-slate-950 pt-10 pb-20 px-6" },
+                React.createElement("div", { className: "max-w-3xl mx-auto" },
+                    // Top Bar
+                    React.createElement("div", { className: "flex justify-between items-center mb-12" },
+                        React.createElement("a", {
+                            href: "index.html",
+                            className: "group flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        }, 
+                            React.createElement(ArrowRight, { className: "w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" }),
+                            "返回首页"
+                        ),
+                        React.createElement("button", {
+                            onClick: toggleTheme,
+                            className: "w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-yellow-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors shadow-sm"
+                        }, 
+                            theme === 'light' 
+                                ? React.createElement(Moon, { className: "w-5 h-5" }) 
+                                : React.createElement(Sun, { className: "w-5 h-5" })
+                        )
+                    ),
+
+                    // Header
+                    React.createElement("header", { className: "mb-12 text-center" },
+                        React.createElement("div", { className: "flex items-center justify-center gap-3 mb-6 text-sm text-gray-500 dark:text-gray-400" },
+                            React.createElement("span", { className: "px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-medium" }, post.category),
+                            React.createElement("span", { className: "flex items-center gap-1" }, React.createElement(Calendar, { className: "w-3 h-3" }), post.date)
+                        ),
+                        React.createElement("h1", { className: "text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight" }, post.title),
+                        React.createElement("p", { className: "text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-2xl mx-auto" }, post.summary)
+                    ),
+
+                    // Content
+                    post.content 
+                        ? React.createElement("article", { 
+                            className: "prose prose-lg dark:prose-invert max-w-none prose-img:rounded-3xl prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400 hover:prose-a:text-blue-500",
+                            dangerouslySetInnerHTML: { __html: marked.parse(post.content) }
+                        })
+                        : React.createElement("div", { className: "flex justify-center py-20" },
+                            React.createElement("div", { className: "animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" })
+                        ),
+
+                    // Footer
+                    React.createElement("div", { className: "mt-20 pt-10 border-t border-gray-100 dark:border-slate-800 flex justify-center" },
+                         React.createElement("a", {
+                            href: "index.html",
+                            className: "px-8 py-3 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                        }, "← 返回文章列表")
+                    )
+                )
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(BlogPostPage));
+    </script>
+</body>
+</html>
