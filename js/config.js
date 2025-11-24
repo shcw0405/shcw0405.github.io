@@ -1,8 +1,8 @@
 // 1. 配置中心 (Configuration)
 window.CONFIG = {
-    avatar: 'https://avatars.githubusercontent.com/u/648470?v=4', // 默认头像，请替换
+    avatar: 'js/b_845c39b3235361479740b71979f14b9b.jpg', // 头像图片
     bgImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop', // 科技感背景
-    featuredImg: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop', // 芯片/科技图
+    featuredImg: 'js/e241e23ba7cc2fec1ecaa272842434f1.JPG', // 芯片/科技图
 };
 
 // 2. 导航链接配置
