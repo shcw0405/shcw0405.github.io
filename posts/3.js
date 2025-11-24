@@ -1,4 +1,10 @@
-window.loadContent(3, `
+window.loadPost({
+    id: 3,
+    title: "我的技术栈",
+    date: "2025-11-24",
+    category: "Tech",
+    summary: "构建这个网站所使用的技术栈分享。",
+    content: `
 # 我的技术栈
 
 这个网站是基于以下技术构建的：
@@ -15,4 +21,5 @@ window.loadContent(3, `
 const greeting = "Hello, World!";
 console.log(greeting);
 \`\`\`
-`);
+    `
+});

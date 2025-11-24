@@ -1,22 +1,36 @@
 <!DOCTYPE html>
 <html lang="zh-CN" class="scroll-smooth">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>博客 - 少华从文的世界</title>
 
-    <!-- 引入 Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Tailwind CSS (with Typography plugin) -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
 
     <!-- 配置 Tailwind 样式 -->
     <script>
         tailwind.config = {
-            darkMode: 'class', 
+            darkMode: 'class',
             theme: {
                 extend: {
                     fontFamily: {
                         sans: ['Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'sans-serif'],
-                    }
+                    },
+                    typography: {
+                        DEFAULT: {
+                            css: {
+                                maxWidth: 'none',
+                                color: '#334155',
+                                p: {
+                                    marginTop: '1.5em',
+                                    marginBottom: '1.5em',
+                                    lineHeight: '1.8',
+                                },
+                            },
+                        },
+                    },
                 }
             }
         }
@@ -36,15 +50,38 @@
     </script>
 
     <style>
-        html, body { overscroll-behavior: none; height: 100%; }
+        html,
+        body {
+            overscroll-behavior: none;
+            height: 100%;
+        }
+
         /* 滚动条样式 */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        .dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-        
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
         .theme-transition {
             transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
             transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -52,19 +89,25 @@
         }
     </style>
 </head>
+
 <body class="bg-gray-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-x-hidden theme-transition">
     <div id="root"></div>
 
     <script src="js/config.js"></script>
-    <script src="js/data.js"></script>
     <script type="module">
         import React, { useState, useEffect } from 'react';
         import { createRoot } from 'react-dom/client';
         import { motion } from 'framer-motion';
         import { ArrowRight, Calendar, Moon, Sun } from 'lucide-react';
         import { marked } from 'marked';
-        
-        const { BLOG_POSTS } = window;
+
+        // Configure marked to handle line breaks
+        marked.setOptions({
+            breaks: true, // Enable GFM line breaks
+            gfm: true
+        });
+
+        const { CONFIG } = window;
 
         const BlogPostPage = () => {
             const [post, setPost] = useState(null);
@@ -94,29 +137,29 @@
             useEffect(() => {
                 const params = new URLSearchParams(window.location.search);
                 const postId = parseInt(params.get('post'));
-                const foundPost = BLOG_POSTS.find(p => p.id === postId);
-                
-                if (foundPost) {
-                    // 1. 设置基础信息
-                    setPost(foundPost);
-                    document.title = `${foundPost.title} - 少华从文的世界`;
 
-                    // 2. 定义全局回调函数
-                    window.loadContent = (id, content) => {
-                        if (id === postId) {
-                            setPost(prev => ({ ...prev, content }));
+                if (postId) {
+                    // 1. 定义全局回调函数
+                    window.loadPost = (postData) => {
+                        if (postData.id === postId) {
+                            setPost(postData);
+                            document.title = `${postData.title} - 少华从文的世界`;
                         }
                     };
 
-                    // 3. 动态加载脚本
+                    // 2. 动态加载脚本
                     const script = document.createElement('script');
                     script.src = `posts/${postId}.js`;
                     script.async = true;
+                    script.onerror = () => {
+                        // Handle error (e.g., post not found)
+                        window.location.href = 'index.html';
+                    };
                     document.body.appendChild(script);
 
                     return () => {
                         document.body.removeChild(script);
-                        delete window.loadContent;
+                        delete window.loadPost;
                     };
                 } else {
                     window.location.href = 'index.html';
@@ -132,16 +175,16 @@
                         React.createElement("a", {
                             href: "index.html",
                             className: "group flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                        }, 
+                        },
                             React.createElement(ArrowRight, { className: "w-4 h-4 rotate-180 group-hover:-translate-x-1 transition-transform" }),
                             "返回首页"
                         ),
                         React.createElement("button", {
                             onClick: toggleTheme,
                             className: "w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-yellow-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors shadow-sm"
-                        }, 
-                            theme === 'light' 
-                                ? React.createElement(Moon, { className: "w-5 h-5" }) 
+                        },
+                            theme === 'light'
+                                ? React.createElement(Moon, { className: "w-5 h-5" })
                                 : React.createElement(Sun, { className: "w-5 h-5" })
                         )
                     ),
@@ -157,8 +200,8 @@
                     ),
 
                     // Content
-                    post.content 
-                        ? React.createElement("article", { 
+                    post.content
+                        ? React.createElement("article", {
                             className: "prose prose-lg dark:prose-invert max-w-none prose-img:rounded-3xl prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400 hover:prose-a:text-blue-500",
                             dangerouslySetInnerHTML: { __html: marked.parse(post.content) }
                         })
@@ -168,7 +211,7 @@
 
                     // Footer
                     React.createElement("div", { className: "mt-20 pt-10 border-t border-gray-100 dark:border-slate-800 flex justify-center" },
-                         React.createElement("a", {
+                        React.createElement("a", {
                             href: "index.html",
                             className: "px-8 py-3 rounded-full bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-gray-300 font-medium hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
                         }, "← 返回文章列表")
@@ -181,4 +224,5 @@
         root.render(React.createElement(BlogPostPage));
     </script>
 </body>
+
 </html>
