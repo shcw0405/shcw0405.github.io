@@ -105,7 +105,9 @@
         // Configure marked to handle line breaks
         marked.setOptions({
             breaks: true, // Enable GFM line breaks
-            gfm: true
+            gfm: true,
+            // Allow HTML tags to be rendered
+            sanitize: false
         });
 
         const { CONFIG } = window;
