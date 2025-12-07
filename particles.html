@@ -315,7 +315,9 @@
         // --- Logic ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        controls.enableZoom = false;
+        controls.enableZoom = true; // Enable Zoom by default
+        controls.autoRotate = true; // "Standard State" - auto rotate
+        controls.autoRotateSpeed = 0.5;
 
         // --- Hand Tracking ---
         let handLandmarker;
@@ -367,38 +369,43 @@
             const delta = clock.getDelta();
             state.time += delta;
 
-            // Target Distance Calculation
-            // User requested: "Magnify and Shrink gestures inverted"
-            // Originally: Pinch (0) = Close(ZoomIn). Open (1) = Far(ZoomOut).
-            // Request: Pinch (0) = Far(ZoomOut/Shrink). Open (1) = Close(ZoomIn/Magnify).
+            if (state.handDetected) {
+                // --- Hand Control Mode ---
+                controls.enabled = false; // Disable mouse controls
 
-            const targetDist = THREE.MathUtils.lerp(45, 6, state.pinchDistance);
-            // PinchDist=0 (Closed) -> 45 (Far). PinchDist=1 (Open) -> 6 (Close).
+                // Target Distance Calculation
+                // Pinch (0) = Far (Stable). Open (1) = Close (Chaos).
+                const targetDist = THREE.MathUtils.lerp(45, 8, state.pinchDistance);
+                const currentDist = camera.position.length();
+                const newDist = THREE.MathUtils.lerp(currentDist, targetDist, delta * 3);
+                camera.position.setLength(newDist);
+                camera.lookAt(0, 0, 0);
 
-            const currentDist = camera.position.length();
-            const newDist = THREE.MathUtils.lerp(currentDist, targetDist, delta * 3);
-            camera.position.setLength(newDist);
-
-            // Chaos Trigger (Close distance = High Chaos)
-            // When Close (Open Hand), we want intensity.
-            // When Far (Closed Hand), steady.
-
-            // "When particles zoom in (close to screen), explode"
-            // So logic matches: Dist < 10 -> Chaos.
-            if (newDist < 12) {
-                state.chaosFactor = THREE.MathUtils.lerp(state.chaosFactor, 1.0, delta * 4);
+                // Chaos Trigger (Close distance < 12)
+                if (newDist < 12) {
+                    state.chaosFactor = THREE.MathUtils.lerp(state.chaosFactor, 1.0, delta * 4);
+                } else {
+                    state.chaosFactor = THREE.MathUtils.lerp(state.chaosFactor, 0.0, delta * 2);
+                }
             } else {
+                // --- Standard/Mouse Mode ---
+                controls.enabled = true;
+                controls.update(); // Handle auto-rotate and damping
+
+                // Slowly decay chaos if we just lost hand tracking
                 state.chaosFactor = THREE.MathUtils.lerp(state.chaosFactor, 0.0, delta * 2);
             }
+
+            // Common Visual Updates
+            const currentDist = camera.position.length();
 
             // UI
             const stability = Math.round((1 - state.chaosFactor) * 100);
             document.getElementById('stability-val').textContent = stability + "%";
             document.getElementById('stability-val').style.color = stability < 40 ? '#ff4444' : '#fff';
 
-            // Visuals
-            // Closer = Brighter (Inverse Square Law flair)
-            const brightness = THREE.MathUtils.clamp(50 / newDist, 0.5, 3.0);
+            // Visuals: Closer = Brighter
+            const brightness = THREE.MathUtils.clamp(50 / currentDist, 0.5, 3.0);
             bloomPass.strength = brightness * 0.6;
             saturnMat.uniforms.color.value.setScalar(brightness * 0.3); // Pulse core
 
