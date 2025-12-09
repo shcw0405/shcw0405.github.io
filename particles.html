@@ -326,21 +326,39 @@
         video.autoplay = true;
 
         async function initWebcam() {
+            // 1. Check for Secure Context (HTTPS)
+            if (window.location.hostname !== 'localhost' && window.location.protocol !== 'https:') {
+                document.getElementById('loader').innerHTML = "摄像头需要 HTTPS 环境<br><a href='" + window.location.href.replace('http:', 'https:') + "' style='color: #44ff44; margin-top: 10px; display: inline-block; font-size: 0.8em;'>点击切换到安全模式</a>";
+                return;
+            }
+
             try {
                 const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
                 handLandmarker = await HandLandmarker.createFromOptions(vision, {
                     baseOptions: { modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`, delegate: "GPU" },
                     runningMode: "VIDEO", numHands: 1
                 });
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('interaction-hint').style.opacity = '1';
+
+                document.getElementById('loader').textContent = "正在请求摄像头权限...";
 
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 video.srcObject = stream;
                 video.addEventListener("loadeddata", predict);
                 webcamRunning = true;
+
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('interaction-hint').style.opacity = '1';
                 document.getElementById('status').classList.add('active');
-            } catch (e) { console.error(e); document.getElementById('loader').textContent = "视觉模块加载失败"; }
+            } catch (e) {
+                console.error(e);
+                let msg = "视觉模块加载失败";
+                if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+                    msg = "访问被拒绝: 请允许摄像头权限";
+                } else if (!navigator.mediaDevices) {
+                    msg = "浏览器不支持或未加密(HTTP)";
+                }
+                document.getElementById('loader').textContent = msg;
+            }
         }
 
         let lastTime = -1;

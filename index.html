@@ -252,7 +252,9 @@
                     };
 
                     if (POST_IDS && POST_IDS.length > 0) {
-                        for (const id of POST_IDS) {
+                        // Limit to first 4 posts for homepage
+                        const recentPostIds = POST_IDS.slice(0, 4);
+                        for (const id of recentPostIds) {
                             const script = document.createElement('script');
                             script.src = `posts/${id}.js`;
                             script.async = true;
@@ -271,7 +273,7 @@
                     React.createElement("h2", { className: "text-3xl font-bold text-gray-800 dark:text-white theme-transition" }, "My ", React.createElement("span", { className: "text-purple-500" }, "Blog"))
                 ),
 
-                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-8" },
+                React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-8 mb-12" },
                     posts.map(post => (
                         React.createElement(motion.a, {
                             key: post.id,
@@ -293,6 +295,14 @@
                             )
                         )
                     ))
+                ),
+
+                // View All Button
+                React.createElement("div", { className: "flex justify-center" },
+                    React.createElement("a", {
+                        href: "archive.html",
+                        className: "px-8 py-3 rounded-full bg-white dark:bg-slate-800 text-gray-900 dark:text-white font-medium hover:bg-gray-50 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 transition-all shadow-sm hover:shadow-md flex items-center gap-2 group theme-transition"
+                    }, "展示全部", React.createElement(ArrowRight, { className: "w-4 h-4 group-hover:translate-x-1 transition-transform" }))
                 )
             );
         };

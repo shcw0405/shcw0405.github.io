@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>少华从文的世界</title>
+    <link rel="icon" type="image/jpeg" href="js/b_845c39b3235361479740b71979f14b9b.jpg">
+
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 配置 Tailwind 样式 -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: [
+                            'Inter',
+                            'PingFang SC',
+                            'Hiragino Sans GB',
+                            'Microsoft YaHei',
+                            'sans-serif'
+                        ],
+                        jp: [
+                            '"Hiragino Sans"',
+                            '"Hiragino Kaku Gothic ProN"',
+                            '"Noto Sans JP"',
+                            '"Yu Gothic"',
+                            'sans-serif'
+                        ]
+                    },
+                    colors: {
+                        anime: {
+                            pink: '#ff7eb3',
+                            blue: '#64d2ff',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- 引入 Import Map -->
+    <script type="importmap">
+    {
+        "imports": {
+            "react": "https://esm.sh/react@18.2.0",
+            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+            "framer-motion": "https://esm.sh/framer-motion@10.16.4?external=react,react-dom",
+            "lucide-react": "https://esm.sh/lucide-react@0.292.0?external=react,react-dom",
+            "marked": "https://esm.sh/marked@9.1.2"
+        }
+    }
+    </script>
+
+    <style>
+        /* 核心修复：禁止浏览器的橡皮筋回弹效果 */
+        html,
+        body {
+            overscroll-behavior: none;
+            height: 100%;
+        }
+
+        /* 滚动条样式 - 适配暗黑模式 */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        /* 日间滚动条 */
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 暗黑模式滚动条适配 */
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        /* 防止 iOS 点击高亮 */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 优化阴影逻辑 */
+        .shadow-text-solid {
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .shadow-text-solid {
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
+            /* 暗黑模式加深阴影 */
+        }
+
+        .shadow-text-gradient {
+            filter: drop-shadow(0 2px 4px rgba(96, 165, 250, 0.2));
+        }
+
+        /* 全局禁止拖拽图片和链接 */
+        img,
+        a {
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        /* 针对导航栏的超细滚动条样式 */
+        .thin-scrollbar::-webkit-scrollbar {
+            height: 3px;
+            width: 3px;
+        }
+
+        .thin-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .thin-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(203, 213, 225, 0.5);
+            border-radius: 10px;
+        }
+
+        .dark .thin-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(71, 85, 105, 0.5);
+        }
+
+        .thin-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.8);
+        }
+
+        /* 硬件加速类 */
+        .gpu-accelerated {
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+        }
+
+        /* 主题切换平滑过渡 */
+        .theme-transition {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 300ms;
+        }
+
+        /* View Transitions API 样式优化 */
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation: none;
+            mix-blend-mode: normal;
+            display: block;
+        }
+
+        /* 统一层级策略 */
+        ::view-transition-new(root) {
+            z-index: 9999;
+        }
+
+        ::view-transition-old(root) {
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 dark:bg-slate-950 text-slate-800 dark:text-slate-200 overflow-x-hidden selection:bg-pink-200 selection:text-pink-900 dark:selection:bg-pink-900 dark:selection:text-pink-100 select-none theme-transition"
+    ondragstart="return false;">
+    <div id="root"></div>
+
+    <!-- React 应用逻辑 -->
+    <script src="js/config.js"></script>
+    <script src="js/posts_manifest.js?v=3"></script>
+    <script type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from 'framer-motion';
+        import { ArrowRight, ExternalLink, Mail, Github, Twitter, Tv, Disc, Star, MessageCircle, BrainCircuit, CheckCircle2, PlayCircle, History, Gamepad2, X, Music, Cloud, Bot, Terminal, BookOpen, Sun, Moon, Volume2, Smartphone, Calendar, ArrowLeft } from 'lucide-react';
+        import { marked } from 'marked';
+
+        // Access global variables
+        const { CONFIG, NAV_LINKS, POST_IDS } = window;
+
+        // 3. Glass Card
+        const GlassCard = ({ children, className = "" }) => (
+            React.createElement("div", { className: `bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border border-white/20 dark:border-white/5 shadow-xl rounded-3xl theme-transition ${className}` }, children)
+        );
+
+        // 4. Social Link Card
+        const SocialCard = ({ icon: Icon, title, subtitle, color, href, className = "" }) => {
+            const cardVariants = {
+                hidden: { y: -50, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 200, damping: 15 } }
+            };
+
+            return React.createElement(motion.div, { variants: cardVariants, className: className },
+                React.createElement(motion.a, {
+                    href: href,
+                    target: "_blank",
+                    rel: "noopener noreferrer",
+                    whileHover: { y: -8, scale: 1.02 },
+                    whileTap: { scale: 0.98 },
+                    transition: { type: "spring", stiffness: 400, damping: 17 },
+                    className: `h-full relative overflow-hidden group block p-6 rounded-3xl bg-white dark:bg-slate-800 shadow-lg border border-gray-100 dark:border-slate-700 theme-transition`
+                },
+                    React.createElement("div", { className: `absolute inset-0 opacity-0 group-hover:opacity-10 theme-transition ${color}` }),
+                    React.createElement("div", { className: "flex items-center justify-between mb-4" },
+                        React.createElement("div", { className: `p-3 rounded-2xl ${color} bg-opacity-10 dark:bg-opacity-20 theme-transition` },
+                            React.createElement(Icon, { className: `w-6 h-6 ${color.replace('bg-', 'text-')} theme-transition` })
+                        ),
+                        React.createElement(ExternalLink, { className: "w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 theme-transition" })
+                    ),
+                    React.createElement("h3", { className: "text-lg font-bold text-gray-800 dark:text-gray-200 theme-transition" }, title),
+                    React.createElement("p", { className: "text-sm text-gray-400 dark:text-gray-500 theme-transition" }, subtitle)
+                )
+            );
+        };
+
+        // [REMOVED] AnimeGrid, BangumiSection, SpotifySection, GameModal
+
+        // [REMOVED] BlogPostPage (Moved to blog.html)
+
+        // 6. Blog Section Component (Timeline Design)
+        const ArchiveSection = () => {
+            const [posts, setPosts] = useState([]);
+
+            useEffect(() => {
+                // Load posts dynamically
+                const loadPosts = async () => {
+                    const loadedPosts = [];
+                    window.loadPost = (post) => {
+                        loadedPosts.push(post);
+                        // Sort by ID descending (newest first)
+                        loadedPosts.sort((a, b) => b.id - a.id);
+                        setPosts([...loadedPosts]);
+                    };
+
+                    if (POST_IDS && POST_IDS.length > 0) {
+                        for (const id of POST_IDS) {
+                            const script = document.createElement('script');
+                            script.src = `posts/${id}.js`;
+                            script.async = true;
+                            document.body.appendChild(script);
+                        }
+                    }
+                };
+
+                loadPosts();
+            }, []);
+
+            return React.createElement("section", { id: "archive", className: "py-16 px-6 max-w-4xl mx-auto z-10 relative min-h-screen" },
+
+                React.createElement("div", { className: "mb-16 pl-6" },
+                    React.createElement("a", {
+                        href: "index.html",
+                        className: "inline-flex items-center text-gray-500 hover:text-purple-500 mb-6 transition-colors group"
+                    },
+                        React.createElement(ArrowLeft, { className: "w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" }),
+                        "返回首页"
+                    ),
+                    React.createElement("h2", { className: "text-4xl font-bold text-gray-900 dark:text-white mb-4 theme-transition" }, "文章归档"),
+                    React.createElement("p", { className: "text-lg text-gray-500 dark:text-gray-400" }, "回顾过往，记录点滴。")
+                ),
+
+                React.createElement("div", { className: "relative border-l-2 border-gray-200 dark:border-slate-800 ml-3 md:ml-6 space-y-12" },
+                    posts.map((post, index) => (
+                        React.createElement(motion.div, {
+                            key: post.id,
+                            initial: { opacity: 0, x: -20 },
+                            whileInView: { opacity: 1, x: 0 },
+                            viewport: { once: true },
+                            transition: { delay: index * 0.1 },
+                            className: "relative pl-8 md:pl-12 group"
+                        },
+                            // Dot
+                            React.createElement("div", { className: "absolute -left-[9px] top-2 w-4 h-4 rounded-full bg-white dark:bg-slate-900 border-4 border-purple-500 group-hover:scale-125 transition-transform shadow-sm" }),
+
+                            // Date
+                            React.createElement("div", { className: "text-sm text-gray-400 mb-2 font-mono flex items-center gap-2" },
+                                React.createElement(Calendar, { className: "w-3 h-3" }),
+                                post.date
+                            ),
+
+                            // Content Card
+                            React.createElement(motion.a, {
+                                href: `blog.html?post=${post.id}`,
+                                className: "block bg-white dark:bg-slate-900/50 p-6 rounded-2xl border border-gray-100 dark:border-slate-800 hover:border-purple-200 dark:hover:border-purple-900/30 hover:bg-purple-50/30 dark:hover:bg-purple-900/10 transition-all group-hover:shadow-lg",
+                                whileHover: { x: 5 }
+                            },
+                                React.createElement("div", { className: "flex justify-between items-start mb-2" },
+                                    React.createElement("h3", { className: "text-xl font-bold text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors" }, post.title),
+                                    React.createElement("span", { className: "px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400" }, post.category)
+                                ),
+                                React.createElement("p", { className: "text-gray-600 dark:text-gray-400 leading-relaxed text-sm line-clamp-2" }, post.summary)
+                            )
+                        )
+                    ))
+                )
+            );
+        };
+
+        // --- 主应用 (Main App) ---
+        const App = () => {
+            const [theme, setTheme] = useState('light');
+
+            // [Theme Init]
+            useEffect(() => {
+                const storedTheme = localStorage.getItem('theme');
+                if (storedTheme) {
+                    setTheme(storedTheme);
+                    if (storedTheme === 'dark') document.documentElement.classList.add('dark');
+                    else document.documentElement.classList.remove('dark');
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    setTheme('dark');
+                    document.documentElement.classList.add('dark');
+                } else {
+                    setTheme('light');
+                    document.documentElement.classList.remove('dark');
+                }
+            }, []);
+
+            return React.createElement("div", { className: "min-h-screen font-sans overflow-x-hidden", onDragStart: (e) => e.preventDefault() },
+                // Background
+                React.createElement("div", { className: "fixed inset-0 pointer-events-none z-0 overflow-hidden" },
+                    React.createElement("div", { className: "absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-200/30 dark:bg-blue-900/20 rounded-full blur-[120px] theme-transition" }),
+                    React.createElement("div", { className: "absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-pink-200/30 dark:bg-pink-900/20 rounded-full blur-[120px] theme-transition" })
+                ),
+
+                // Archive Section (Timeline)
+                React.createElement(ArchiveSection)
+            );
+        };
+
+        // 启动应用
+        const root = createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+
+</html>
