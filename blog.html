@@ -205,7 +205,7 @@
                     // Content
                     post.content
                         ? React.createElement("article", {
-                            className: "prose prose-lg dark:prose-invert max-w-none prose-img:rounded-3xl prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400 hover:prose-a:text-blue-500",
+                            className: "prose prose-lg dark:prose-invert max-w-none prose-img:rounded-3xl prose-headings:font-bold prose-a:text-blue-600 dark:prose-a:text-blue-400 hover:prose-a:text-blue-500 [&>h1:first-child]:hidden",
                             dangerouslySetInnerHTML: { __html: marked.parse(post.content) }
                         })
                         : React.createElement("div", { className: "flex justify-center py-20" },
